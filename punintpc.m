@@ -12,101 +12,84 @@ function [x, y, mu] = punintpc(Q,A,c,b)
 %
 %Out
 % x.- vector en R^n con la aproximación del mínimo local.
-% lambda.- vector en R^m con la aproximación al multiplicador
-%          de Lagrange asociado a la restricción de igualdad.
-% mu.- vector en R^p con la aproximación al multiplicador
-%          de Lagrange asociado a la restricción de desigualdad.
-% y.- vector en R^p con la variable de holgura en la restricción
-%     de desigualdad.
-%---------------------------------------------------------------------------
+% lambda.- vector en R^m con la aproximación al multiplicador de Lagrange 
+% asociado a la restricción de igualdad.
+% mu.- vector en R^p con la aproximación al multiplicador de Lagrange 
+% asociado a la restricción de desigualdad.
+% y.- vector en R^p con la variable de holgura en la restricción de 
+% desigualdad.
+%--------------------------------------------------------------------------
 % Andrés Cruz y Vera 155899
 % Alexis Ayala Redon 156916
 % Javier Montiel Gonzalez 159216
-%--------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Parametros iniciales
 tol = 1e-08;       % Tolerancia a las condiciones necesarias de 1er orden
 maxiter = 250;     % máximo número de iteraciones permitidas
 iter = 0;          % contador de las iteraciones
-%-----------------------------------------------------------
+%--------------------------------------------------------------------------
 n = length(c);     % dimensión de la variable principal
 m = length(b);     % número de restricciones 
-%----------------------------------------------------------
+%--------------------------------------------------------------------------
 % variables iniciales
+x = zeros(n,1);
 mu = ones(m,1);
 y = ones(m,1);
-
-%Para obtener x0 resolvemos el situiente problema
-epsilon = 1e-03;
 e = ones(m,1);
-Aeq = [A -1*eye(m)];
-beq = b - epsilon*e;
-x = linprog([e; zeros(n,1)],A,b,Aeq,beq);
+nu = (0.5)*(mu'*y)/m;
 
-%-----------------------------------------------
-% vectores para graficación
-cnpo=[]; comp =[];
 % Norma de las condiciones necesarias de primer orden
-H =[Q*x + A'*lambda - F'*mu+c; A*x - b;F*x - z - d; mu.*z];
+H =[Q*x - A'*mu+c; A*x- y - b; mu.*y];
 norma = norm(H);
-disp('Iter      CNPO             tau ')
-disp('-----------------------------------------')
-while(norma > tol & iter < maxiter)
-  % Resuelve el sistema lineal de Newton para la trayectoria central
-    D = diag(mu./z);
-    G = Q + F'*D*F;
-    w = zeros(p,1);
-    for k = 1:p
-        w(k) = F(k,:)*x - d(k)-(tau/mu(k));
-    end
-    dg = Q*x + A'*lambda  -F'*mu+ c + F'*D*w;
+
+while(norma > tol && iter < maxiter)
+    Y=diag(y);
+    U=diag(mu);
+    D=diag(mu./y); %Y inversa por U
     
-    % sistema lineal
-    K = [G  A'; A  zeros(m)];
-    ld = -[dg ; A*x-b];
-    y = K \ ld;
-    %-------------------------------------------------------
-    % Se calculan los pasos
-    Dx = y(1:n);
-    Dlambda = y(n+1:n+m);
+    % Matriz Jaconiaba del Lagrangiano
+    rx=Q*x-A'*mu+c;
+    ry=A*x-y-b;
+    rmu=Y*U*e-nu*e;
     
-    Dmu =-(D)*(F*Dx+w);
-    Dz = -( (1./mu).*(z.*Dmu - tau) + z );
-    %Dz =-inv(MatU)*(MatZ*Dmu+MatU*MatZ*vt-tau*vt);  
-   %---------------------------------------------------------- 
-    % Acorta el paso
+    % Resolvemos el sistema 
+    B=Q+A'*D*A;
+    d=-(rx+A'*D*ry+rmu./y);
+    Dx= d\B;
+    
+    % Obtenemos los valores de Dy y Dmu
+    Dy=A*Dx+ry;
+    Dmu=-(D*Dy-rmu./y);
+    
+    % Acortamos el paso
     bt = []; gm = [];
-    for k =1:p
-        if (Dmu(k) < 0)
-            bt = [bt; -(mu(k)/Dmu(k))];
+    for k =1:m
+        if (Dy(k) < 0)
+            gm = [gm; -(y(k)/Dy(k))];
+        else
+            gm = [gm; 1];
         end
-        if(Dz(k) < 0)
-            gm = [gm; -(z(k)/Dz(k))];
+        if(Dm(k) < 0)
+            bt = [bt; -(mu(k)/Dmu(k))];
+        else
+            bt= [bt; 1];
         end
     end
     
     alfa = min([bt ; gm]);
     alfa =(0.9995)*min([1 alfa]);  
-    %-----------------------------------------------------------
+    %----------------------------------------------------------------------
      % Nuevo punto
        x      = x + alfa*Dx;
-       lambda = lambda + alfa*Dlambda;
        mu     = mu + alfa*Dmu;
-       z      = z + alfa*Dz;
-     %-------------------------------------------------------  
+       y      = y + alfa*Dz;
+     %---------------------------------------------------------------------  
      % Nueva tau
-        tau = (0.5)*(mu'*z)/p;
-     %-------------------------------------------------------  
-       %Condiciones necesarias de primer orden
-       H=[Q*x+A'*lambda-F'*mu+c;A*x-b; F*x-z-d; mu.*z ];
+        nu = (0.5)*(mu'*y)/m;
+     %---------------------------------------------------------------------
+     %Condiciones necesarias de primer orden
+       H=[Q*x+A'*mu+c;A*x-y-b; mu.*y ];
        norma = norm(H);
        iter = iter + 1;
-       cnpo =[cnpo norma];
-       comp = [comp 2*tau];
-       disp(sprintf('%3.0f  %2.8f  %2.8f',iter,norma,2*tau))
 end
-
-   semilogy([1:iter],cnpo,'r',[1:iter],comp,'b')
-   title('Convergencia de puntos interiores')
-   legend('CNPO', 'Complementaridad')
 end
-        
