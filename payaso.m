@@ -1,7 +1,8 @@
-% clear all;
-% clc;
-% load clown;
-% colormap('gray');
-%image(X);
-X = [ 1 1 1; 2 2 2 ]
-[W, H] = descenso2pasos(X, 5);
+clear all;
+clc;
+load clown;
+colormap('gray');
+image(X);
+% X = [ 1 1 1; 2 2 2 ]
+[W, H] = descenso2pasos(X, 60, 20);
+norm(X-W*H)
