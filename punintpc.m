@@ -1,6 +1,6 @@
 function [x, y, mu] = punintpc(Q,A,c,b)
 % Metodo de punto interior para el problema cuadrático
-% Min   (0.5)* x' * Q * x + c´* x
+% Min   (0.5)* x' * Q * x + c'* x
 % s.a.   A * x >= b
 %
 %  Llamado: function [x, y, mu] = punintpc(Q,A,c,b)
