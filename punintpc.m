@@ -48,6 +48,19 @@ while(norma > tol && iter < maxiter)
     D=diag(mu./y); %Y inversa por U
     
     % Matriz Jaconiaba del Lagrangiano
+<<<<<<< HEAD
+    rx=Q*x-A'*mu+c; %nx1
+    ry=A*x-y-b;     %mx1
+    rmu=Y*U*e-nu*e; %mx1
+    
+    % Resolvemos el sistema 
+    B=Q+A'*D*A;
+    d=-(rx+A'*D*ry+A'*(rmu./y));
+    Dx= d\B;
+    
+    % Obtenemos los valores de Dy y Dmu
+    Dy=A*Dx'+ry;
+=======
     rx=Q*x-A'*mu+c;
     ry=A*x-y-b;
     rmu=Y*U*e-nu*e;
@@ -59,6 +72,7 @@ while(norma > tol && iter < maxiter)
     
     % Obtenemos los valores de Dy y Dmu
     Dy=A*Dx+ry;
+>>>>>>> 4c19d232ddb6478ba87998c1e61802dee6d61d1e
     Dmu=-(D*Dy-rmu./y);
     
     % Acortamos el paso
@@ -69,7 +83,11 @@ while(norma > tol && iter < maxiter)
         else
             gm = [gm; 1];
         end
+<<<<<<< HEAD
+        if(Dmu(k) < 0)
+=======
         if(Dm(k) < 0)
+>>>>>>> 4c19d232ddb6478ba87998c1e61802dee6d61d1e
             bt = [bt; -(mu(k)/Dmu(k))];
         else
             bt= [bt; 1];
@@ -80,6 +98,17 @@ while(norma > tol && iter < maxiter)
     alfa =(0.9995)*min([1 alfa]);  
     %----------------------------------------------------------------------
      % Nuevo punto
+<<<<<<< HEAD
+       x      = x + alfa*Dx';
+       mu     = mu + alfa*Dmu;
+       y      = y + alfa*Dy;
+     %---------------------------------------------------------------------  
+     % Nueva nu
+       nu = (0.5)*(mu'*y)/m;
+     %---------------------------------------------------------------------
+     %Condiciones necesarias de primer orden
+       H =[Q*x - A'*mu+c; A*x - y - b; mu.*y];
+=======
        x      = x + alfa*Dx;
        mu     = mu + alfa*Dmu;
        y      = y + alfa*Dz;
@@ -89,6 +118,7 @@ while(norma > tol && iter < maxiter)
      %---------------------------------------------------------------------
      %Condiciones necesarias de primer orden
        H=[Q*x+A'*mu+c;A*x-y-b; mu.*y ];
+>>>>>>> 4c19d232ddb6478ba87998c1e61802dee6d61d1e
        norma = norm(H);
        iter = iter + 1;
 end
