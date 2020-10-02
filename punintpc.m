@@ -1,35 +1,35 @@
 function [x, y, mu] = punintpc(Q,A,c,b)
-% Metodo de punto interior para el problema cuadrático
+% Metodo de punto interior para el problema cuadrï¿½tico
 % Min   (0.5)* x' * Q * x + c'* x
 % s.a.   A * x >= b
 %
 %  Llamado: function [x, y, mu] = punintpc(Q,A,c,b)
 % In
-% Q.- matriz nxn simétrica y positiva definida
+% Q.- matriz nxn simï¿½trica y positiva definida
 % A.- matriz mxn con m <= n y rango(A) = m..
 % b.- vector columna en R^m .
 % c.- vector columna en R^p .
 %
 %Out
-% x.- vector en R^n con la aproximación del mínimo local.
-% lambda.- vector en R^m con la aproximación al multiplicador de Lagrange 
-% asociado a la restricción de igualdad.
-% mu.- vector en R^p con la aproximación al multiplicador de Lagrange 
-% asociado a la restricción de desigualdad.
-% y.- vector en R^p con la variable de holgura en la restricción de 
+% x.- vector en R^n con la aproximaciï¿½n del mï¿½nimo local.
+% lambda.- vector en R^m con la aproximaciï¿½n al multiplicador de Lagrange 
+% asociado a la restricciï¿½n de igualdad.
+% mu.- vector en R^p con la aproximaciï¿½n al multiplicador de Lagrange 
+% asociado a la restricciï¿½n de desigualdad.
+% y.- vector en R^p con la variable de holgura en la restricciï¿½n de 
 % desigualdad.
 %--------------------------------------------------------------------------
-% Andrés Cruz y Vera 155899
+% Andrï¿½s Cruz y Vera 155899
 % Alexis Ayala Redon 156916
 % Javier Montiel Gonzalez 159216
 %--------------------------------------------------------------------------
 % Parametros iniciales
 tol = 1e-08;       % Tolerancia a las condiciones necesarias de 1er orden
-maxiter = 250;     % máximo número de iteraciones permitidas
+maxiter = 250;     % mï¿½ximo nï¿½mero de iteraciones permitidas
 iter = 0;          % contador de las iteraciones
 %--------------------------------------------------------------------------
-n = length(c);     % dimensión de la variable principal
-m = length(b);     % número de restricciones 
+n = length(c);     % dimensiï¿½n de la variable principal
+m = length(b);     % nï¿½mero de restricciones 
 %--------------------------------------------------------------------------
 % variables iniciales
 x = zeros(n,1);
@@ -48,7 +48,6 @@ while(norma > tol && iter < maxiter)
     D=diag(mu./y); %Y inversa por U
     
     % Matriz Jaconiaba del Lagrangiano
-<<<<<<< HEAD
     rx=Q*x-A'*mu+c; %nx1
     ry=A*x-y-b;     %mx1
     rmu=Y*U*e-nu*e; %mx1
@@ -60,19 +59,6 @@ while(norma > tol && iter < maxiter)
     
     % Obtenemos los valores de Dy y Dmu
     Dy=A*Dx'+ry;
-=======
-    rx=Q*x-A'*mu+c;
-    ry=A*x-y-b;
-    rmu=Y*U*e-nu*e;
-    
-    % Resolvemos el sistema 
-    B=Q+A'*D*A;
-    d=-(rx+A'*D*ry+rmu./y);
-    Dx= d\B;
-    
-    % Obtenemos los valores de Dy y Dmu
-    Dy=A*Dx+ry;
->>>>>>> 4c19d232ddb6478ba87998c1e61802dee6d61d1e
     Dmu=-(D*Dy-rmu./y);
     
     % Acortamos el paso
@@ -83,11 +69,7 @@ while(norma > tol && iter < maxiter)
         else
             gm = [gm; 1];
         end
-<<<<<<< HEAD
         if(Dmu(k) < 0)
-=======
-        if(Dm(k) < 0)
->>>>>>> 4c19d232ddb6478ba87998c1e61802dee6d61d1e
             bt = [bt; -(mu(k)/Dmu(k))];
         else
             bt= [bt; 1];
@@ -98,7 +80,6 @@ while(norma > tol && iter < maxiter)
     alfa =(0.9995)*min([1 alfa]);  
     %----------------------------------------------------------------------
      % Nuevo punto
-<<<<<<< HEAD
        x      = x + alfa*Dx';
        mu     = mu + alfa*Dmu;
        y      = y + alfa*Dy;
@@ -108,17 +89,6 @@ while(norma > tol && iter < maxiter)
      %---------------------------------------------------------------------
      %Condiciones necesarias de primer orden
        H =[Q*x - A'*mu+c; A*x - y - b; mu.*y];
-=======
-       x      = x + alfa*Dx;
-       mu     = mu + alfa*Dmu;
-       y      = y + alfa*Dz;
-     %---------------------------------------------------------------------  
-     % Nueva tau
-        nu = (0.5)*(mu'*y)/m;
-     %---------------------------------------------------------------------
-     %Condiciones necesarias de primer orden
-       H=[Q*x+A'*mu+c;A*x-y-b; mu.*y ];
->>>>>>> 4c19d232ddb6478ba87998c1e61802dee6d61d1e
        norma = norm(H);
        iter = iter + 1;
 end
