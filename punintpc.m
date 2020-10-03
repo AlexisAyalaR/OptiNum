@@ -32,7 +32,7 @@ n = length(c);     % dimensi�n de la variable principal
 m = length(b);     % n�mero de restricciones 
 %--------------------------------------------------------------------------
 % variables iniciales
-x = zeros(n,1);
+x = ones(n,1);
 mu = ones(m,1);
 y = ones(m,1);
 e = ones(m,1);
@@ -85,7 +85,11 @@ while(norma > tol && iter < maxiter)
        y      = y + alfa*Dy;
      %---------------------------------------------------------------------  
      % Nueva nu
+     if(mod(iter,2)==0)
        nu = (0.5)*(mu'*y)/m;
+     else
+       nu = 0;
+     end
      %---------------------------------------------------------------------
      %Condiciones necesarias de primer orden
        H =[Q*x - A'*mu+c; A*x - y - b; mu.*y];
