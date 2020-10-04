@@ -1,65 +1,67 @@
 function [x, y, mu] = punintpc(Q,A,c,b)
-% Metodo de punto interior para el problema cuadr�tico
+% Metodo de punto interior para el problema cuadratico
 % Min   (0.5)* x' * Q * x + c'* x
 % s.a.   A * x >= b
 %
-%  Llamado: function [x, y, mu] = punintpc(Q,A,c,b)
+% Llamado: [x, y, mu] = punintpc(Q,A,c,b)
 % In
-% Q.- matriz nxn sim�trica y positiva definida
+% Q.- matriz nxn simetrica y positiva definida
 % A.- matriz mxn con m <= n y rango(A) = m..
 % b.- vector columna en R^m .
 % c.- vector columna en R^p .
 %
 %Out
-% x.- vector en R^n con la aproximaci�n del m�nimo local.
-% lambda.- vector en R^m con la aproximaci�n al multiplicador de Lagrange 
-% asociado a la restricci�n de igualdad.
-% mu.- vector en R^p con la aproximaci�n al multiplicador de Lagrange 
-% asociado a la restricci�n de desigualdad.
-% y.- vector en R^p con la variable de holgura en la restricci�n de 
+% x.- vector en R^n con la aproximacion del minimo local.
+% mu.- vector en R^p con la aproximacion al multiplicador de Lagrange 
+% asociado a la restriccion de desigualdad.
+% y.- vector en R^p con la variable de holgura en la restriccion de 
 % desigualdad.
 %--------------------------------------------------------------------------
-% Andr�s Cruz y Vera 155899
+% Andres Cruz y Vera 155899
 % Alexis Ayala Redon 156916
 % Javier Montiel Gonzalez 159216
 %--------------------------------------------------------------------------
 % Parametros iniciales
 tol = 1e-08;       % Tolerancia a las condiciones necesarias de 1er orden
-maxiter = 250;     % m�ximo n�mero de iteraciones permitidas
+maxiter = 250;     % maximo numero de iteraciones permitidas
 iter = 0;          % contador de las iteraciones
 %--------------------------------------------------------------------------
-n = length(c);     % dimensi�n de la variable principal
-m = length(b);     % n�mero de restricciones 
+n = length(c);     % dimension de la variable principal
+m = length(b);     % numero de restricciones 
 %--------------------------------------------------------------------------
 % variables iniciales
-x = ones(n,1);
 mu = ones(m,1);
 y = ones(m,1);
 e = ones(m,1);
-nu = (0.5)*(mu'*y)/m;
+Y= diag(y);
+Yinv= diag(1./y);
+U= diag(mu);
+
+%Punto inicial
+x= ones(n,1);
+
+%Calculamos eta
+eta = (0.5)*(mu'*y)/m;
+
 
 % Norma de las condiciones necesarias de primer orden
-H =[Q*x - A'*mu+c; A*x- y - b; mu.*y];
+H =[Q*x - A'*mu+c; A*x- y - b; Y*U*e];
 norma = norm(H);
 
-while(norma > tol && iter < maxiter)
-    Y=diag(y);
-    U=diag(mu);
-    D=diag(mu./y); %Y inversa por U
-    
-    % Matriz Jaconiaba del Lagrangiano
+while(norma > tol && iter < maxiter)    
+    % Condiciones perturbadas de KKT
     rx=Q*x-A'*mu+c; %nx1
     ry=A*x-y-b;     %mx1
-    rmu=Y*U*e-nu*e; %mx1
+    rmu=Y*U*e-eta*e; %mx1
     
-    % Resolvemos el sistema 
-    B=Q+A'*D*A;
-    d=-(rx+A'*D*ry+A'*(rmu./y));
-    Dx= d\B;
+    % Resolvemos el metodo de Newton 
+    B=Q+A'*Yinv*U*A;
+    d=-(rx+A'*Yinv*U*ry+A'*Yinv*rmu);
+    Dx= B\d; 
     
     % Obtenemos los valores de Dy y Dmu
-    Dy=A*Dx'+ry;
-    Dmu=-(D*Dy-rmu./y);
+    Dy=A*Dx+ry;
+    Dmu=-Yinv*(U*Dy+rmu);
     
     % Acortamos el paso
     bt = []; gm = [];
@@ -79,21 +81,21 @@ while(norma > tol && iter < maxiter)
     alfa = min([bt ; gm]);
     alfa =(0.9995)*min([1 alfa]);  
     %----------------------------------------------------------------------
-     % Nuevo punto
-       x      = x + alfa*Dx';
-       mu     = mu + alfa*Dmu;
-       y      = y + alfa*Dy;
-     %---------------------------------------------------------------------  
-     % Nueva nu
-     if(mod(iter,2)==0)
-       nu = (0.5)*(mu'*y)/m;
-     else
-       nu = 0;
-     end
-     %---------------------------------------------------------------------
-     %Condiciones necesarias de primer orden
-       H =[Q*x - A'*mu+c; A*x - y - b; mu.*y];
-       norma = norm(H);
-       iter = iter + 1;
+    % Nuevo punto
+    x = x + alfa*Dx;
+    mu = mu + alfa*Dmu;
+    y = y + alfa*Dy;
+    
+    Y=diag(y);
+    U=diag(mu);
+    Yinv=diag(1./y); 
+    %----------------------------------------------------------------------  
+    %Nueva eta
+    eta = (0.5)*(mu'*y)/m;
+    %---------------------------------------------------------------------
+    %Condiciones necesarias de primer orden
+    H =[Q*x - A'*mu+c; A*x - y - b; Y*U*e];
+    norma = norm(H);
+    iter = iter + 1;
 end
 end
